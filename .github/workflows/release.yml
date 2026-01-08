@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build binaries
+        run: |
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o vibector-linux-amd64 ./cmd/vibector
+
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o vibector-linux-arm64 ./cmd/vibector
+
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o vibector-windows-amd64.exe ./cmd/vibector
+
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o vibector-darwin-amd64 ./cmd/vibector
+
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o vibector-darwin-arm64 ./cmd/vibector
+
+      - name: Create checksums
+        run: |
+          sha256sum vibector-* > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            vibector-linux-amd64
+            vibector-linux-arm64
+            vibector-windows-amd64.exe
+            vibector-darwin-amd64
+            vibector-darwin-arm64
+            checksums.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
