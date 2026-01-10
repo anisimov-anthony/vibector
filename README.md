@@ -20,6 +20,13 @@
 
 ## Installation
 
+### Using go install
+If you have Go installed, you can install the binary directly:
+```bash
+go install github.com/anisimov-anthony/vibector/cmd/vibector@latest
+```
+Note: If the command is not found after installation, ensure your Go bin directory is in your `PATH`: `export PATH=$PATH:$(go env GOPATH)/bin`
+
 ### Build from Source
 
 ```bash
